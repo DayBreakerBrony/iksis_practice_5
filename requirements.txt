@@ -1,2 +1,2 @@
 matplotlib>=3.5.0
-python-dotenv>=1.0.0
+dotenv>=1.0.0
