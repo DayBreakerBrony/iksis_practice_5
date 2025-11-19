@@ -47,7 +47,7 @@ def avg_queue_length(E, m):
 # ============================
 
 def plot_erlang_b_vs_intensity():
-    E_values = [i * 0.1 for i in range(1, 100)]
+    E_values = [i for i in range(1, n)]
     pb_values = [erlang_b(E, 2 * n) for E in E_values]
 
     plt.figure(figsize=(10, 5))
@@ -78,39 +78,54 @@ def plot_erlang_b_vs_servers():
     plt.show()
 
 def plot_erlang_c_vs_intensity():
-    m = 2 * n
-    min_intensity = 0.1 * m
-    max_intensity = 0.95 * m
-
-    E_values = [min_intensity + i * (max_intensity - min_intensity) / 200 for i in range(200)]
+    """График 2.2: Зависимость вероятности ожидания и длины очереди от интенсивности"""
+    m = 2 * n  # число обслуживающих устройств
+    
+    # Интенсивность нагрузки от 0 до n (по условию задания)
+    min_intensity = 0
+    max_intensity = n
+    
+    # Создаем значения интенсивности от 0 до n
+    num_points = min(200, n * 2)  # Адаптивное количество точек
+    E_values = [min_intensity + i * (max_intensity - min_intensity) / num_points for i in range(num_points + 1)]
+    
+    # Убираем E=0 чтобы избежать деления на 0
+    E_values = [E for E in E_values if E > 0]
     
     pw_values = [erlang_c(E, m) for E in E_values]
     lq_values = [avg_queue_length(E, m) for E in E_values]
 
+    # Создаем фигуру с двумя субплогами
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
     
-    ax1.semilogy(E_values, pw_values, 'b-', linewidth=2, label='Вероятность ожидания')
+    # Первый график - вероятность ожидания
+    ax1.plot(E_values, pw_values, 'b-', linewidth=2, label='Вероятность ожидания')
     ax1.set_xlabel('Интенсивность нагрузки (E)')
     ax1.set_ylabel('Вероятность ожидания (лог. шкала)')
-    ax1.set_title(f'Вероятность ожидания от интенсивности нагрузки\n(m={m})')
+    ax1.set_title(f'Вероятность ожидания от интенсивности нагрузки\n(m={m}, E=0..{n})')
     ax1.grid(True, which="both", ls="-", alpha=0.2)
     ax1.legend()
     
+    # Второй график - средняя длина очереди
     ax2.plot(E_values, lq_values, 'r-', linewidth=2, label='Средняя длина очереди')
     ax2.set_xlabel('Интенсивность нагрузки (E)')
     ax2.set_ylabel('Средняя длина очереди')
-    ax2.set_title(f'Средняя длина очереди от интенсивности нагрузки\n(m={m})')
+    ax2.set_title(f'Средняя длина очереди от интенсивности нагрузки\n(m={m}, E=0..{n})')
     ax2.grid(True)
     ax2.legend()
-
+    
+    # Настраиваем отступы
     plt.tight_layout()
     plt.savefig('erlang_c_vs_intensity.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_erlang_c_vs_servers():
-
-    start_m = n + 1
-    end_m = max(n * 2, 50)
+    """График 2.3: Зависимость вероятности ожидания и длины очереди от числа устройств"""
+    # Интенсивность нагрузки фиксирована: E = n (по условию задания)
+    # Число обслуживающих устройств меняется от n+1 до 2*n
+    
+    start_m = n + 1  # минимальное число устройств (должно быть > E для стабильности)
+    end_m = 2 * n    # максимальное число устройств (по условию задания)
     
     m_values_c = list(range(start_m, end_m + 1))
     
@@ -121,17 +136,17 @@ def plot_erlang_c_vs_servers():
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
     
-    ax1.semilogy(m_values_c, pw_values_m, 'b-', linewidth=2, label='Вероятность ожидания')
+    ax1.plot(m_values_c, pw_values_m, 'b-', linewidth=2, label='Вероятность ожидания')
     ax1.set_xlabel('Число обслуживающих устройств (m)')
     ax1.set_ylabel('Вероятность ожидания (лог. шкала)')
-    ax1.set_title(f'Вероятность ожидания от числа устройств\n(n={n})')
+    ax1.set_title(f'Вероятность ожидания от числа устройств\n(E={n}, m={start_m}..{end_m})')
     ax1.grid(True, which="both", ls="-", alpha=0.2)
     ax1.legend()
     
     ax2.plot(m_values_c, lq_values_m, 'r-', linewidth=2, label='Средняя длина очереди')
     ax2.set_xlabel('Число обслуживающих устройств (m)')
     ax2.set_ylabel('Средняя длина очереди')
-    ax2.set_title(f'Средняя длина очереди от числа устройств\n(n={n})')
+    ax2.set_title(f'Средняя длина очереди от числа устройств\n(E={n}, m={start_m}..{end_m})')
     ax2.grid(True)
     ax2.legend()
     
