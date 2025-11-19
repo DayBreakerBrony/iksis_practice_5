@@ -12,7 +12,7 @@ except (ValueError, TypeError):
 print(f"Используется индивидуальный номер: {n}")
 
 # ============================
-# ПЕРВАЯ ФОРМУЛА ЭРЛАНГА (Erlang B)
+# ПЕРВАЯ ФОРМУЛА ЭРЛАНГА
 # ============================
 
 def erlang_b_recursive(E, m):
@@ -27,7 +27,7 @@ def erlang_b(E, m):
     return 1.0 / inv_B
 
 # ============================
-# ВТОРАЯ ФОРМУЛА ЭРЛАНГА (Erlang C)
+# ВТОРАЯ ФОРМУЛА ЭРЛАНГА
 # ============================
 
 def erlang_c(E, m):
@@ -47,7 +47,6 @@ def avg_queue_length(E, m):
 # ============================
 
 def plot_erlang_b_vs_intensity():
-    """График 1.2: Зависимость вероятности блокировки от интенсивности нагрузки"""
     E_values = [i * 0.1 for i in range(1, 100)]
     pb_values = [erlang_b(E, 2 * n) for E in E_values]
 
@@ -62,51 +61,81 @@ def plot_erlang_b_vs_intensity():
     plt.show()
 
 def plot_erlang_b_vs_servers():
-    """График 1.3: Зависимость вероятности блокировки от числа устройств"""
-    m_values = list(range(1, 21))
+    start_m = 1
+    end_m = max(n * 2, 21)
+    
+    m_values = list(range(start_m, end_m + 1))
     pb_values_m = [erlang_b(n, m) for m in m_values]
 
     plt.figure(figsize=(10, 5))
     plt.plot(m_values, pb_values_m, label=f'E = {n}')
     plt.xlabel('Число обслуживающих устройств (m)')
     plt.ylabel('Вероятность блокировки')
-    plt.title('Зависимость вероятности блокировки от числа устройств')
+    plt.title(f'Зависимость вероятности блокировки от числа устройств (n={n})')
     plt.grid(True)
     plt.legend()
     plt.savefig('erlang_b_vs_servers.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_erlang_c_vs_intensity():
-    """График 2.2: Зависимость вероятности ожидания и длины очереди от интенсивности"""
-    E_values_c = [i * 0.1 for i in range(1, int(2*n*0.9))]  # A < V
-    pw_values = [erlang_c(E, 2 * n) for E in E_values_c]
-    lq_values = [avg_queue_length(E, 2 * n) for E in E_values_c]
+    m = 2 * n
+    min_intensity = 0.1 * m
+    max_intensity = 0.95 * m
 
-    plt.figure(figsize=(10, 5))
-    plt.plot(E_values_c, pw_values, label='Вероятность ожидания')
-    plt.plot(E_values_c, lq_values, label='Средняя длина очереди')
-    plt.xlabel('Интенсивность нагрузки (E)')
-    plt.ylabel('Значение')
-    plt.title('Зависимость вероятности ожидания и длины очереди от интенсивности нагрузки')
-    plt.grid(True)
-    plt.legend()
+    E_values = [min_intensity + i * (max_intensity - min_intensity) / 200 for i in range(200)]
+    
+    pw_values = [erlang_c(E, m) for E in E_values]
+    lq_values = [avg_queue_length(E, m) for E in E_values]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+    
+    ax1.semilogy(E_values, pw_values, 'b-', linewidth=2, label='Вероятность ожидания')
+    ax1.set_xlabel('Интенсивность нагрузки (E)')
+    ax1.set_ylabel('Вероятность ожидания (лог. шкала)')
+    ax1.set_title(f'Вероятность ожидания от интенсивности нагрузки\n(m={m})')
+    ax1.grid(True, which="both", ls="-", alpha=0.2)
+    ax1.legend()
+    
+    ax2.plot(E_values, lq_values, 'r-', linewidth=2, label='Средняя длина очереди')
+    ax2.set_xlabel('Интенсивность нагрузки (E)')
+    ax2.set_ylabel('Средняя длина очереди')
+    ax2.set_title(f'Средняя длина очереди от интенсивности нагрузки\n(m={m})')
+    ax2.grid(True)
+    ax2.legend()
+
+    plt.tight_layout()
     plt.savefig('erlang_c_vs_intensity.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 def plot_erlang_c_vs_servers():
-    """График 2.3: Зависимость вероятности ожидания и длины очереди от числа устройств"""
-    m_values_c = list(range(n + 1, 21))  # m > E
+
+    start_m = n + 1
+    end_m = max(n * 2, 50)
+    
+    m_values_c = list(range(start_m, end_m + 1))
+    
+    print(f"Диапазон m: от {start_m} до {end_m}")
+    
     pw_values_m = [erlang_c(n, m) for m in m_values_c]
     lq_values_m = [avg_queue_length(n, m) for m in m_values_c]
 
-    plt.figure(figsize=(10, 5))
-    plt.plot(m_values_c, pw_values_m, label='Вероятность ожидания')
-    plt.plot(m_values_c, lq_values_m, label='Средняя длина очереди')
-    plt.xlabel('Число обслуживающих устройств (m)')
-    plt.ylabel('Значение')
-    plt.title('Зависимость вероятности ожидания и длины очереди от числа устройств')
-    plt.grid(True)
-    plt.legend()
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+    
+    ax1.semilogy(m_values_c, pw_values_m, 'b-', linewidth=2, label='Вероятность ожидания')
+    ax1.set_xlabel('Число обслуживающих устройств (m)')
+    ax1.set_ylabel('Вероятность ожидания (лог. шкала)')
+    ax1.set_title(f'Вероятность ожидания от числа устройств\n(n={n})')
+    ax1.grid(True, which="both", ls="-", alpha=0.2)
+    ax1.legend()
+    
+    ax2.plot(m_values_c, lq_values_m, 'r-', linewidth=2, label='Средняя длина очереди')
+    ax2.set_xlabel('Число обслуживающих устройств (m)')
+    ax2.set_ylabel('Средняя длина очереди')
+    ax2.set_title(f'Средняя длина очереди от числа устройств\n(n={n})')
+    ax2.grid(True)
+    ax2.legend()
+    
+    plt.tight_layout()
     plt.savefig('erlang_c_vs_servers.png', dpi=300, bbox_inches='tight')
     plt.show()
 
